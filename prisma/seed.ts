@@ -46,7 +46,7 @@ async function main() {
   // 创建默认管理员账户
   console.log('创建默认管理员账户...');
   
-  const hashedPassword = await bcrypt.hash('Password@123', 10);
+  const hashedPassword = await bcrypt.hash('Password@123', 12);
   
   const adminUser = await prisma.user.upsert({
     where: { username: 'admin' },
