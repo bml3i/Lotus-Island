@@ -115,5 +115,6 @@ model ExchangeRule {
   fromItem Item @relation("FromItem", fields: [fromItemId], references: [id], onDelete: Cascade)
   toItem   Item @relation("ToItem", fields: [toItemId], references: [id], onDelete: Cascade)
 
+  @@unique([fromItemId, toItemId])
   @@map("exchange_rules")
 }
