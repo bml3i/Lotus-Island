@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username     String   @unique @db.VarChar(50)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         String   @default("user") @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  userItems           UserItem[]
+  usageHistory        UsageHistory[]
+  userActivityRecords UserActivityRecord[]
+
+  @@map("users")
+}
+
+model Item {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @db.VarChar(100)
+  description String?
+  iconUrl     String?  @map("icon_url") @db.VarChar(255)
+  isUsable    Boolean  @default(false) @map("is_usable")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  userItems         UserItem[]
+  usageHistory      UsageHistory[]
+  exchangeRulesFrom ExchangeRule[] @relation("FromItem")
+  exchangeRulesTo   ExchangeRule[] @relation("ToItem")
+
+  @@map("items")
+}
+
+model UserItem {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  itemId    String   @map("item_id") @db.Uuid
+  quantity  Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+  @@map("user_items")
+}
+
+model UsageHistory {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  itemId       String   @map("item_id") @db.Uuid
+  quantityUsed Int      @map("quantity_used")
+  usedAt       DateTime @default(now()) @map("used_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@map("usage_history")
+}
+
+model Activity {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @db.VarChar(100)
+  type      String   @db.VarChar(50)
+  config    Json
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  userActivityRecords UserActivityRecord[]
+
+  @@map("activities")
+}
+
+model UserActivityRecord {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  activityId String   @map("activity_id") @db.Uuid
+  recordDate DateTime @map("record_date") @db.Date
+  data       Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, activityId, recordDate])
+  @@map("user_activity_records")
+}
+
+model ExchangeRule {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fromItemId   String   @map("from_item_id") @db.Uuid
+  toItemId     String   @map("to_item_id") @db.Uuid
+  fromQuantity Int      @map("from_quantity")
+  toQuantity   Int      @map("to_quantity")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  fromItem Item @relation("FromItem", fields: [fromItemId], references: [id], onDelete: Cascade)
+  toItem   Item @relation("ToItem", fields: [toItemId], references: [id], onDelete: Cascade)
+
+  @@map("exchange_rules")
+}
