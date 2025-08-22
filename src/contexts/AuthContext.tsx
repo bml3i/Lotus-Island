@@ -34,12 +34,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const isAuthenticated = !!user && !!token;
 
   // 登录函数
-  const login = (newToken: string, newUser: User) => {
+  const login = useCallback((newToken: string, newUser: User) => {
     setToken(newToken);
     setUser(newUser);
     localStorage.setItem('auth_token', newToken);
     localStorage.setItem('user_info', JSON.stringify(newUser));
-  };
+  }, []);
 
   // 登出函数
   const logout = useCallback(async () => {
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       logout();
       return false;
     }
-  }, [token, logout]);
+  }, [token, logout, login]);
 
   // 验证当前用户
   const verifyCurrentUser = async (storedToken: string): Promise<boolean> => {

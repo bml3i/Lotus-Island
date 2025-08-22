@@ -1,26 +1,31 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
+  const router = useRouter();
   const { isAuthenticated, isLoading, user } = useAuth();
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && !hasRedirected) {
+      setHasRedirected(true);
+      
       if (isAuthenticated && user) {
         // 根据用户角色重定向
         if (user.role === 'admin') {
-          window.location.href = '/admin';
+          router.replace('/admin');
         } else {
-          window.location.href = '/dashboard';
+          router.replace('/dashboard');
         }
       } else {
         // 未认证用户重定向到登录页
-        window.location.href = '/login';
+        router.replace('/login');
       }
     }
-  }, [isAuthenticated, isLoading, user]);
+  }, [isAuthenticated, isLoading, user, router, hasRedirected]);
 
   // 显示加载状态
   return (
