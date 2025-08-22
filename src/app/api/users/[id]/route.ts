@@ -15,12 +15,12 @@ import { User } from '@/types';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return AuthMiddleware.withAuth(
     async (req: NextRequest, user) => {
       try {
-        const { id } = params;
+        const { id } = await params;
 
         // 验证权限：管理员可以查看所有用户，普通用户只能查看自己
         AuthMiddleware.requireOwnershipOrAdmin(user!, id);
@@ -51,7 +51,7 @@ export async function GET(
         return ApiResponseFormatter.success(formattedUser, '用户信息获取成功');
       } catch (error) {
         const appError = ErrorHandler.handleError(error);
-        ErrorHandler.logError(appError, `GET /api/users/${params.id}`);
+        ErrorHandler.logError(appError, 'GET /api/users/[id]');
         return ApiResponseFormatter.error(appError);
       }
     },
@@ -64,12 +64,12 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return AuthMiddleware.withAuth(
     async (req: NextRequest, user) => {
       try {
-        const { id } = params;
+        const { id } = await params;
         const body = await req.json();
         const { username, password, role } = body;
 
@@ -142,7 +142,7 @@ export async function PUT(
         return ApiResponseFormatter.success(formattedUser, '用户信息更新成功');
       } catch (error) {
         const appError = ErrorHandler.handleError(error);
-        ErrorHandler.logError(appError, `PUT /api/users/${params.id}`);
+        ErrorHandler.logError(appError, 'PUT /api/users/[id]');
         return ApiResponseFormatter.error(appError);
       }
     },
@@ -155,12 +155,12 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return AuthMiddleware.withAuth(
     async (req: NextRequest, user) => {
       try {
-        const { id } = params;
+        const { id } = await params;
 
         // 检查用户是否存在
         const existingUser = await prisma.user.findUnique({
@@ -184,7 +184,7 @@ export async function DELETE(
         return ApiResponseFormatter.success(null, '用户删除成功');
       } catch (error) {
         const appError = ErrorHandler.handleError(error);
-        ErrorHandler.logError(appError, `DELETE /api/users/${params.id}`);
+        ErrorHandler.logError(appError, 'DELETE /api/users/[id]');
         return ApiResponseFormatter.error(appError);
       }
     },

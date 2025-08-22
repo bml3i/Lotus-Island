@@ -45,7 +45,10 @@ function DashboardPage() {
                 <div className="bg-white p-6 rounded-lg shadow">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">我的背包</h3>
                   <p className="text-gray-600">查看和使用你的物品</p>
-                  <button className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                  <button 
+                    onClick={() => window.location.href = '/backpack'}
+                    className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  >
                     进入背包
                   </button>
                 </div>
