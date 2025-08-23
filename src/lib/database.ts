@@ -4,6 +4,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { getDatabaseEnv, getEnvironmentContext } from './env';
 
 // 数据库连接配置
 interface DatabaseConfig {
@@ -15,29 +16,18 @@ interface DatabaseConfig {
 
 // 从环境变量获取数据库配置
 function getDatabaseConfig(): DatabaseConfig {
-  const config: DatabaseConfig = {
-    url: process.env.DATABASE_URL || '',
-    poolSize: parseInt(process.env.DATABASE_POOL_SIZE || '10'),
-    timeout: parseInt(process.env.DATABASE_TIMEOUT || '30000'),
-    sslMode: process.env.DATABASE_SSL_MODE || 'require'
-  };
-
-  // 验证配置
-  if (!config.url) {
-    throw new Error('DATABASE_URL 环境变量未设置');
-  }
-
-  if (!config.url.includes('postgresql://') && !config.url.includes('postgres://')) {
-    throw new Error('DATABASE_URL 必须是有效的 PostgreSQL 连接字符串');
-  }
-
-  return config;
+  return getDatabaseEnv();
 }
 
 // 构建带SSL配置的数据库URL
 function buildDatabaseUrl(): string {
   const config = getDatabaseConfig();
   let url = config.url;
+
+  // 如果没有URL（构建时），返回空字符串
+  if (!url) {
+    return '';
+  }
 
   // 确保URL包含SSL模式
   if (!url.includes('sslmode=')) {
@@ -63,17 +53,45 @@ function buildDatabaseUrl(): string {
 
 // 创建 Prisma 客户端实例
 function createPrismaClient(): PrismaClient {
-  const config = getDatabaseConfig();
+  const { isBuildTime } = getEnvironmentContext();
   
-  return new PrismaClient({
-    datasources: {
-      db: {
-        url: buildDatabaseUrl()
-      }
-    },
-    log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
-    errorFormat: 'pretty'
-  });
+  if (isBuildTime) {
+    // 构建时使用最小配置，不连接数据库
+    return new PrismaClient({
+      log: ['error'],
+      errorFormat: 'pretty'
+    });
+  }
+
+  try {
+    const config = getDatabaseConfig();
+    const databaseUrl = buildDatabaseUrl();
+    
+    // 如果没有数据库URL，使用默认配置
+    if (!databaseUrl) {
+      return new PrismaClient({
+        log: ['error'],
+        errorFormat: 'pretty'
+      });
+    }
+    
+    return new PrismaClient({
+      datasources: {
+        db: {
+          url: databaseUrl
+        }
+      },
+      log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+      errorFormat: 'pretty'
+    });
+  } catch (error) {
+    // 如果配置失败，返回默认客户端
+    console.warn('Database configuration failed, using default client:', error);
+    return new PrismaClient({
+      log: ['error'],
+      errorFormat: 'pretty'
+    });
+  }
 }
 
 // 全局 Prisma 客户端实例

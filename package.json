@@ -21,6 +21,7 @@
     "deploy:prod": "dotenv -e .env.production -- node scripts/deploy.js",
     "deploy:staging": "dotenv -e .env.staging -- node scripts/deploy.js",
     "verify": "node scripts/verify-deployment.js",
+    "check-env": "node scripts/check-env.js",
     "vercel-build": "prisma generate && prisma migrate deploy && npm run build",
     "postinstall": "prisma generate"
   },
