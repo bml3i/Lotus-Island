@@ -80,7 +80,10 @@ function DashboardPage() {
                 <div className="bg-white p-6 rounded-lg shadow">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">活动广场</h3>
                   <p className="text-gray-600">参与各种有趣的活动</p>
-                  <button className="mt-4 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                  <button 
+                    onClick={() => router.push('/activities')}
+                    className="mt-4 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  >
                     探索活动
                   </button>
                 </div>

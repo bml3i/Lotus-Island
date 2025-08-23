@@ -40,7 +40,7 @@ export interface Activity {
   id: string;
   name: string;
   type: string;
-  config: Record<string, unknown>;
+  config: Record<string, unknown> | null;
   isActive: boolean;
   createdAt: Date;
 }

@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
-import { TokenUtils, ApiResponseFormatter, AuthenticationError, AuthorizationError } from '../utils';
+import { TokenUtils } from '../auth';
+import { ApiResponseFormatter } from '../api-response';
+import { AuthenticationError, AuthorizationError } from '../errors';
 
 /**
  * 认证中间件接口
