@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const debugInfo: any = {
+  const debugInfo: Record<string, unknown> = {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     nodeVersion: process.version,
@@ -45,35 +45,38 @@ export async function GET(request: NextRequest) {
 
   // 尝试连接数据库
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient({
       log: ['error'],
     });
 
-    debugInfo.databaseConnection = {
+    const databaseConnection: Record<string, unknown> = {
       prismaClientCreated: true,
     };
 
     try {
       await prisma.$connect();
-      debugInfo.databaseConnection.connected = true;
+      databaseConnection.connected = true;
 
       // 尝试简单查询
       const userCount = await prisma.user.count();
-      debugInfo.databaseConnection.userCount = userCount;
-      debugInfo.databaseConnection.querySuccess = true;
+      databaseConnection.userCount = userCount;
+      databaseConnection.querySuccess = true;
 
       await prisma.$disconnect();
-    } catch (connectionError: any) {
-      debugInfo.databaseConnection.connected = false;
-      debugInfo.databaseConnection.error = connectionError.message;
-      debugInfo.databaseConnection.errorCode = connectionError.code;
+    } catch (connectionError: unknown) {
+      databaseConnection.connected = false;
+      databaseConnection.error = connectionError instanceof Error ? connectionError.message : 'Unknown error';
+      databaseConnection.errorCode = (connectionError as { code?: string }).code;
     }
 
-  } catch (prismaError: any) {
+    debugInfo.databaseConnection = databaseConnection;
+
+  } catch (prismaError: unknown) {
     debugInfo.databaseConnection = {
       prismaClientCreated: false,
-      error: prismaError.message,
+      error: prismaError instanceof Error ? prismaError.message : 'Unknown error',
     };
   }
 
@@ -106,6 +109,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 尝试查找用户
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
 
@@ -143,11 +147,11 @@ export async function POST(request: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json({
       success: false,
-      error: error.message,
-      debug: { errorType: error.constructor.name }
+      error: error instanceof Error ? error.message : 'Unknown error',
+      debug: { errorType: error instanceof Error ? error.constructor.name : 'Unknown' }
     }, { status: 500 });
   }
 }
