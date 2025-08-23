@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { AuthMiddleware } from '@/lib/middleware/auth';
-import { ApiResponseFormatter } from '@/lib/api-response';
+import { AuthMiddleware, ApiResponseFormatter } from '@/lib/utils';
 
 // GET /api/activities - 获取所有活动配置
 export async function GET(request: NextRequest) {

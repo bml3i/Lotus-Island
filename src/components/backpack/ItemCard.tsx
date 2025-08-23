@@ -1,6 +1,7 @@
 'use client';
 
 import { Item } from '@/types';
+import { TouchFeedback } from '@/components/ui/TouchFeedback';
 
 interface ItemCardProps {
   item: Item;
@@ -27,44 +28,46 @@ export function ItemCard({
     }
   };
 
-  const handleQuantityIncrease = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleQuantityIncrease = () => {
     if (!disabled && onQuantityChange && selectedQuantity < quantity) {
       onQuantityChange(item.id, selectedQuantity + 1);
     }
   };
 
-  const handleQuantityDecrease = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleQuantityDecrease = () => {
     if (!disabled && onQuantityChange && selectedQuantity > 0) {
       onQuantityChange(item.id, selectedQuantity - 1);
     }
   };
 
   return (
-    <div
+    <TouchFeedback
+      onPress={handleCardClick}
+      disabled={disabled || !item.isUsable}
+      hapticFeedback={true}
+      pressScale={0.95}
       className={`
-        relative bg-white rounded-lg border-2 p-4 transition-all duration-200 cursor-pointer
+        relative bg-white rounded-lg border-2 p-3 sm:p-4 transition-all duration-200
         ${isSelected 
           ? 'border-blue-500 bg-blue-50 shadow-md' 
           : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
         }
-        ${!item.isUsable ? 'opacity-60 cursor-not-allowed' : ''}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+        ${!item.isUsable ? 'opacity-60' : ''}
+        ${disabled ? 'opacity-50' : ''}
       `}
-      onClick={handleCardClick}
     >
       {/* 物品图标 */}
-      <div className="flex justify-center mb-3">
+      <div className="flex justify-center mb-2 sm:mb-3">
         {item.iconUrl ? (
           <img 
             src={item.iconUrl} 
             alt={item.name}
-            className="w-12 h-12 object-contain"
+            className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
+            loading="lazy"
           />
         ) : (
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-200 rounded-full flex items-center justify-center">
-            <span className="text-blue-600 font-bold text-lg">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-100 to-indigo-200 rounded-full flex items-center justify-center">
+            <span className="text-blue-600 font-bold text-base sm:text-lg">
               {item.name.charAt(0)}
             </span>
           </div>
@@ -72,72 +75,74 @@ export function ItemCard({
       </div>
 
       {/* 物品名称 */}
-      <h3 className="text-sm font-medium text-gray-900 text-center mb-1 truncate">
+      <h3 className="text-xs sm:text-sm font-medium text-gray-900 text-center mb-1 truncate">
         {item.name}
       </h3>
 
-      {/* 物品描述 */}
+      {/* 物品描述 - 仅在较大屏幕显示 */}
       {item.description && (
-        <p className="text-xs text-gray-500 text-center mb-2 line-clamp-2">
+        <p className="hidden sm:block text-xs text-gray-500 text-center mb-2 line-clamp-2">
           {item.description}
         </p>
       )}
 
       {/* 数量显示 */}
       <div className="flex items-center justify-center mb-2">
-        <span className="text-sm text-gray-600">
-          拥有: <span className="font-medium text-gray-900">{quantity}</span>
+        <span className="text-xs sm:text-sm text-gray-600">
+          <span className="font-medium text-gray-900">{quantity}</span>
         </span>
       </div>
 
       {/* 可使用标识 */}
       {item.isUsable && (
         <div className="flex justify-center mb-2">
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            可使用
+          <span className="inline-flex items-center px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            可用
           </span>
         </div>
       )}
 
       {/* 选择数量控制 */}
       {isSelected && item.isUsable && onQuantityChange && (
-        <div className="flex items-center justify-center space-x-2 mt-3 pt-3 border-t border-blue-200">
-          <button
-            onClick={handleQuantityDecrease}
+        <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-blue-200">
+          <TouchFeedback
+            onPress={handleQuantityDecrease}
             disabled={selectedQuantity <= 0 || disabled}
-            className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            hapticFeedback={true}
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-500 text-white flex items-center justify-center disabled:bg-gray-300 transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
             </svg>
-          </button>
+          </TouchFeedback>
           
-          <span className="min-w-[2rem] text-center font-medium text-blue-600">
+          <span className="min-w-[1.5rem] sm:min-w-[2rem] text-center font-medium text-blue-600 text-sm">
             {selectedQuantity}
           </span>
           
-          <button
-            onClick={handleQuantityIncrease}
+          <TouchFeedback
+            onPress={handleQuantityIncrease}
             disabled={selectedQuantity >= quantity || disabled}
-            className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            hapticFeedback={true}
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-500 text-white flex items-center justify-center disabled:bg-gray-300 transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-          </button>
+          </TouchFeedback>
         </div>
       )}
 
       {/* 选中指示器 */}
       {isSelected && (
-        <div className="absolute top-2 right-2">
-          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="absolute top-1 right-1 sm:top-2 sm:right-2">
+          <div className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-md">
+            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
         </div>
       )}
-    </div>
+    </TouchFeedback>
   );
 }

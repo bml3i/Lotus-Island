@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>莲花岛 - 移动端测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 20px;
+            margin-top: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .logo {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .feature {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .touch-test {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            width: 100%;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        .touch-test:active {
+            transform: scale(0.95);
+            background: #5a67d8;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .grid-item {
+            aspect-ratio: 1;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .grid-item:active {
+            transform: scale(0.9);
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                margin: 20px;
+                margin-top: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🪷</div>
+        <h1>莲花岛移动端测试</h1>
+        
+        <div class="feature">
+            <strong>✅ 响应式设计</strong><br>
+            自适应不同屏幕尺寸
+        </div>
+        
+        <div class="feature">
+            <strong>✅ 触摸优化</strong><br>
+            44px最小触摸目标
+        </div>
+        
+        <div class="feature">
+            <strong>✅ 安全区域</strong><br>
+            支持刘海屏和圆角屏幕
+        </div>
+        
+        <div class="feature">
+            <strong>✅ 性能优化</strong><br>
+            快速加载和流畅动画
+        </div>
+        
+        <button class="touch-test" onclick="testVibration()">
+            测试触觉反馈
+        </button>
+        
+        <button class="touch-test" onclick="testFullscreen()">
+            测试全屏模式
+        </button>
+        
+        <div class="grid">
+            <div class="grid-item" onclick="testTouch(this)">1</div>
+            <div class="grid-item" onclick="testTouch(this)">2</div>
+            <div class="grid-item" onclick="testTouch(this)">3</div>
+            <div class="grid-item" onclick="testTouch(this)">4</div>
+        </div>
+        
+        <div id="info" style="margin-top: 20px; padding: 10px; background: #e3f2fd; border-radius: 5px; font-size: 12px;">
+            <div>屏幕尺寸: <span id="screen-size"></span></div>
+            <div>设备像素比: <span id="pixel-ratio"></span></div>
+            <div>触摸支持: <span id="touch-support"></span></div>
+            <div>用户代理: <span id="user-agent"></span></div>
+        </div>
+    </div>
+    
+    <script>
+        // 更新设备信息
+        function updateDeviceInfo() {
+            document.getElementById('screen-size').textContent = `${window.innerWidth}x${window.innerHeight}`;
+            document.getElementById('pixel-ratio').textContent = window.devicePixelRatio;
+            document.getElementById('touch-support').textContent = 'ontouchstart' in window ? '是' : '否';
+            document.getElementById('user-agent').textContent = navigator.userAgent.substring(0, 50) + '...';
+        }
+        
+        // 测试触觉反馈
+        function testVibration() {
+            if ('vibrate' in navigator) {
+                navigator.vibrate([100, 50, 100]);
+                alert('触觉反馈已触发！');
+            } else {
+                alert('此设备不支持触觉反馈');
+            }
+        }
+        
+        // 测试全屏
+        function testFullscreen() {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else {
+                alert('此浏览器不支持全屏API');
+            }
+        }
+        
+        // 测试触摸
+        function testTouch(element) {
+            element.style.background = '#28a745';
+            setTimeout(() => {
+                element.style.background = 'linear-gradient(45deg, #667eea, #764ba2)';
+            }, 200);
+        }
+        
+        // 初始化
+        updateDeviceInfo();
+        window.addEventListener('resize', updateDeviceInfo);
+        
+        // 阻止双击缩放
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>
