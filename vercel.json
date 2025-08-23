@@ -9,12 +9,12 @@
     }
   },
   "env": {
-    "DATABASE_URL": "@database_url",
-    "JWT_SECRET": "@jwt_secret",
-    "NEXTAUTH_URL": "@nextauth_url",
-    "DATABASE_POOL_SIZE": "@database_pool_size",
-    "DATABASE_TIMEOUT": "@database_timeout",
-    "DATABASE_SSL_MODE": "@database_ssl_mode"
+    "DATABASE_URL": "$DATABASE_URL",
+    "JWT_SECRET": "$JWT_SECRET",
+    "NEXTAUTH_URL": "$NEXTAUTH_URL",
+    "DATABASE_POOL_SIZE": "$DATABASE_POOL_SIZE",
+    "DATABASE_TIMEOUT": "$DATABASE_TIMEOUT",
+    "DATABASE_SSL_MODE": "$DATABASE_SSL_MODE"
   },
   "build": {
     "env": {
