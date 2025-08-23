@@ -1,13 +1,15 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useAuth, withAuth } from '@/contexts/AuthContext';
 
 function DashboardPage() {
+  const router = useRouter();
   const { user, logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   return (
@@ -46,7 +48,7 @@ function DashboardPage() {
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">我的背包</h3>
                   <p className="text-gray-600">查看和使用你的物品</p>
                   <button 
-                    onClick={() => window.location.href = '/backpack'}
+                    onClick={() => router.push('/backpack')}
                     className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                   >
                     进入背包
@@ -56,7 +58,10 @@ function DashboardPage() {
                 <div className="bg-white p-6 rounded-lg shadow">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">每日签到</h3>
                   <p className="text-gray-600">签到获得莲子奖励</p>
-                  <button className="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                  <button 
+                    onClick={() => router.push('/checkin')}
+                    className="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  >
                     立即签到
                   </button>
                 </div>

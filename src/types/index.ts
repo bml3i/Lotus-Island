@@ -80,3 +80,24 @@ export interface ErrorResponse {
   message: string;
   statusCode: number;
 }
+
+// Check-in related types
+export interface CheckInStatus {
+  canCheckIn: boolean;
+  lastCheckIn: Date | null;
+  hasCheckedInToday: boolean;
+}
+
+export interface CheckInResponse {
+  success: boolean;
+  reward: {
+    itemName: string;
+    quantity: number;
+  };
+  checkInTime: Date;
+}
+
+export interface CheckInReward {
+  itemName: string;
+  quantity: number;
+}
