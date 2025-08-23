@@ -101,3 +101,33 @@ export interface CheckInReward {
   itemName: string;
   quantity: number;
 }
+
+// Exchange related types
+export interface ExchangeRequest {
+  exchangeRuleId: string;
+  quantity?: number;
+}
+
+export interface ExchangeResponse {
+  success: boolean;
+  data?: {
+    fromItem: string;
+    toItem: string;
+    fromQuantity: number;
+    toQuantity: number;
+  };
+  message?: string;
+}
+
+export interface CreateExchangeRuleRequest {
+  fromItemId: string;
+  toItemId: string;
+  fromQuantity: number;
+  toQuantity: number;
+}
+
+export interface UpdateExchangeRuleRequest {
+  fromQuantity?: number;
+  toQuantity?: number;
+  isActive?: boolean;
+}

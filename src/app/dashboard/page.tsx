@@ -43,7 +43,7 @@ function DashboardPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">用户仪表板</h2>
               <p className="text-gray-600 mb-6">欢迎来到莲花岛好习惯培养系统！</p>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
                 <div className="bg-white p-6 rounded-lg shadow">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">我的背包</h3>
                   <p className="text-gray-600">查看和使用你的物品</p>
@@ -63,6 +63,17 @@ function DashboardPage() {
                     className="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                   >
                     立即签到
+                  </button>
+                </div>
+                
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">物品兑换</h3>
+                  <p className="text-gray-600">用物品兑换有用的奖励</p>
+                  <button 
+                    onClick={() => router.push('/exchange')}
+                    className="mt-4 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    立即兑换
                   </button>
                 </div>
                 

@@ -182,6 +182,15 @@ export class ApiResponseFormatter {
   }
 
   /**
+   * 创建冲突响应
+   * @param message 错误消息
+   * @returns NextResponse对象
+   */
+  static conflict(message?: string): NextResponse<ApiResponse> {
+    return this.error(message || '资源冲突', 409);
+  }
+
+  /**
    * 创建服务器错误响应
    * @param message 错误消息
    * @returns NextResponse对象
