@@ -158,7 +158,7 @@ BEGIN
     
     -- 插入默认管理员账户（密码：Password@123）
     INSERT INTO "users" ("username", "password_hash", "role") VALUES
-    ('admin', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin')
+    ('admin', '$2b$12$01JqJwuCdPh0caOl2k51IORf78Sp/QKTDb9nG0fgk1j4yy5F3EdLa', 'admin')
     RETURNING "id" INTO admin_user_id;
     
     -- 插入兑换规则：10个莲子兑换1个20分钟电视券
