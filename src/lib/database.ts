@@ -1,209 +1,109 @@
 /**
- * 数据库连接配置和工具函数
- * 处理生产环境SSL连接和连接池配置
+ * 数据库配置和连接管理
+ * 使用原生PostgreSQL客户端替代Prisma
  */
 
-import { PrismaClient } from '@prisma/client';
+import { getPool, testConnection, getHealthStatus } from './db';
 import { getDatabaseEnv, getEnvironmentContext } from './env';
 
-// 数据库连接配置
+/**
+ * 数据库配置接口
+ */
 interface DatabaseConfig {
-  url: string;
-  poolSize: number;
-  timeout: number;
-  sslMode: string;
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  password: string;
+  ssl: boolean;
 }
 
-// 从环境变量获取数据库配置
+/**
+ * 获取数据库配置
+ * @returns 数据库配置对象
+ */
 function getDatabaseConfig(): DatabaseConfig {
-  return getDatabaseEnv();
+  const env = getDatabaseEnv();
+  
+  return {
+    host: env.DB_HOST,
+    port: env.DB_PORT,
+    database: env.DB_NAME,
+    username: env.DB_USER,
+    password: env.DB_PASSWORD,
+    ssl: env.DB_SSL
+  };
 }
 
-// 构建带SSL配置的数据库URL
+/**
+ * 构建数据库连接URL
+ * @returns 数据库连接URL字符串
+ */
 function buildDatabaseUrl(): string {
-  const config = getDatabaseConfig();
-  let url = config.url;
-
-  // 如果没有URL（构建时），返回空字符串
-  if (!url) {
-    return '';
-  }
-
-  // 确保URL包含SSL模式
-  if (!url.includes('sslmode=')) {
-    const separator = url.includes('?') ? '&' : '?';
-    url += `${separator}sslmode=${config.sslMode}`;
-  }
-
-  // 添加连接池配置
-  if (!url.includes('connection_limit=')) {
-    const separator = url.includes('?') ? '&' : '?';
-    url += `${separator}connection_limit=${config.poolSize}`;
-  }
-
-  // 添加连接超时配置
-  if (!url.includes('connect_timeout=')) {
-    const separator = url.includes('?') ? '&' : '?';
-    const timeoutSeconds = Math.floor(config.timeout / 1000);
-    url += `${separator}connect_timeout=${timeoutSeconds}`;
-  }
-
-  return url;
-}
-
-// 创建 Prisma 客户端实例
-function createPrismaClient(): PrismaClient {
   const { isBuildTime } = getEnvironmentContext();
   
+  // 构建时直接返回环境变量中的URL
   if (isBuildTime) {
-    // 构建时使用最小配置，不连接数据库
-    return new PrismaClient({
-      log: ['error'],
-      errorFormat: 'pretty'
-    });
+    return process.env.DATABASE_URL || '';
   }
-
-  try {
-    const config = getDatabaseConfig();
-    const databaseUrl = buildDatabaseUrl();
-    
-    // 如果没有数据库URL，使用默认配置
-    if (!databaseUrl) {
-      return new PrismaClient({
-        log: ['error'],
-        errorFormat: 'pretty'
-      });
-    }
-    
-    return new PrismaClient({
-      datasources: {
-        db: {
-          url: databaseUrl
-        }
-      },
-      log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
-      errorFormat: 'pretty'
-    });
-  } catch (error) {
-    // 如果配置失败，返回默认客户端
-    console.warn('Database configuration failed, using default client:', error);
-    return new PrismaClient({
-      log: ['error'],
-      errorFormat: 'pretty'
-    });
+  
+  // 优先使用环境变量中的完整URL
+  if (process.env.DATABASE_URL) {
+    return process.env.DATABASE_URL;
   }
+  
+  // 如果没有完整URL，则从各个组件构建
+  const config = getDatabaseConfig();
+  const sslParam = config.ssl ? '?sslmode=require' : '';
+  
+  return `postgresql://${config.username}:${config.password}@${config.host}:${config.port}/${config.database}${sslParam}`;
 }
 
-// 全局 Prisma 客户端实例
-declare global {
-  var __prisma: PrismaClient | undefined;
-}
-
-// 单例模式的 Prisma 客户端
-export const prisma = globalThis.__prisma || createPrismaClient();
-
-if (process.env.NODE_ENV !== 'production') {
-  globalThis.__prisma = prisma;
-}
-
-// 数据库连接测试函数
+/**
+ * 测试数据库连接
+ * @returns Promise<boolean> 连接是否成功
+ */
 export async function testDatabaseConnection(): Promise<boolean> {
   try {
-    await prisma.$connect();
-    await prisma.$queryRaw`SELECT 1`;
-    console.log('✅ 数据库连接成功');
-    return true;
+    const result = await testConnection();
+    if (result) {
+      console.log('✅ 数据库连接成功');
+    } else {
+      console.log('❌ 数据库连接失败');
+    }
+    return result;
   } catch (error) {
     console.error('❌ 数据库连接失败:', error);
     return false;
   }
 }
 
-// 数据库健康检查
-export async function getDatabaseHealth(): Promise<{
+/**
+ * 获取数据库健康状态
+ * @returns Promise<object> 数据库健康状态信息
+ */
+export async function getDatabaseHealthStatus(): Promise<{
   connected: boolean;
   version?: string;
   ssl?: boolean;
   error?: string;
 }> {
-  try {
-    await prisma.$connect();
-    
-    // 获取数据库版本
-    const versionResult = await prisma.$queryRaw<Array<{ version: string }>>`SELECT version()`;
-    const version = versionResult[0]?.version;
-    
-    // 检查SSL连接状态
-    const sslResult = await prisma.$queryRaw<Array<{ ssl: boolean }>>`
-      SELECT CASE WHEN ssl THEN true ELSE false END as ssl 
-      FROM pg_stat_ssl 
-      WHERE pid = pg_backend_pid()
-    `;
-    const ssl = sslResult[0]?.ssl || false;
-    
-    return {
-      connected: true,
-      version,
-      ssl
-    };
-  } catch (error) {
-    return {
-      connected: false,
-      error: error instanceof Error ? error.message : '未知错误'
-    };
-  }
+  return await getHealthStatus();
 }
 
-// 优雅关闭数据库连接
+/**
+ * 关闭数据库连接
+ * @returns Promise<void>
+ */
 export async function closeDatabaseConnection(): Promise<void> {
   try {
-    await prisma.$disconnect();
+    const pool = getPool();
+    await pool.end();
     console.log('✅ 数据库连接已关闭');
   } catch (error) {
-    console.error('❌ 关闭数据库连接时出错:', error);
-  }
-}
-
-// 数据库迁移状态检查
-export async function getMigrationStatus(): Promise<{
-  applied: number;
-  pending: number;
-  error?: string;
-}> {
-  try {
-    // 检查迁移表是否存在
-    const migrationTable = await prisma.$queryRaw<Array<{ exists: boolean }>>`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_name = '_prisma_migrations'
-      ) as exists
-    `;
-    
-    if (!migrationTable[0]?.exists) {
-      return { applied: 0, pending: 0, error: '迁移表不存在' };
-    }
-    
-    // 获取已应用的迁移数量
-    const appliedMigrations = await prisma.$queryRaw<Array<{ count: bigint }>>`
-      SELECT COUNT(*) as count FROM "_prisma_migrations" 
-      WHERE finished_at IS NOT NULL
-    `;
-    
-    const applied = Number(appliedMigrations[0]?.count || 0);
-    
-    return { applied, pending: 0 };
-  } catch (error) {
-    return {
-      applied: 0,
-      pending: 0,
-      error: error instanceof Error ? error.message : '未知错误'
-    };
+    console.error('❌ 关闭数据库连接失败:', error);
   }
 }
 
 // 导出配置函数供其他模块使用
 export { getDatabaseConfig, buildDatabaseUrl };
-
-// 默认导出 Prisma 客户端
-export default prisma;

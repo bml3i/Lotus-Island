@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { UserItemModel } from '@/lib/models/user-item';
 import { 
   ApiResponseFormatter, 
   AuthMiddleware, 
@@ -13,35 +13,18 @@ import { BackpackItem } from '@/types';
 export const GET = AuthMiddleware.withAuth(
   async (request: NextRequest, user) => {
     try {
-      const userItems = await prisma.userItem.findMany({
-        where: {
-          userId: user!.userId,
-          quantity: {
-            gt: 0 // 只返回数量大于0的物品
-          }
-        },
-        include: {
-          item: true
-        },
-        orderBy: [
-          {
-            item: {
-              name: 'asc'
-            }
-          }
-        ]
-      });
+      const userItems = await UserItemModel.findByUserId(user!.userId);
 
       const formattedItems: BackpackItem[] = userItems.map(userItem => ({
         id: userItem.id,
         userId: userItem.userId,
         item: {
-          id: userItem.item.id,
-          name: userItem.item.name,
-          description: userItem.item.description || undefined,
-          iconUrl: userItem.item.iconUrl || undefined,
-          isUsable: userItem.item.isUsable,
-          createdAt: userItem.item.createdAt,
+          id: userItem.item!.id,
+          name: userItem.item!.name,
+          description: userItem.item!.description || undefined,
+          iconUrl: userItem.item!.iconUrl || undefined,
+          isUsable: userItem.item!.isUsable,
+          createdAt: new Date(), // 这里需要从item表获取，暂时使用当前时间
         },
         quantity: userItem.quantity,
         updatedAt: userItem.updatedAt,

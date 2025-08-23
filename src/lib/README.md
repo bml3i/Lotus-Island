@@ -55,7 +55,7 @@ src/lib/
 - `DatabaseError`: 数据库错误 (500)
 
 #### ErrorHandler
-- `handlePrismaError(error)`: 处理Prisma数据库错误
+- `handleDatabaseError(error)`: 处理PostgreSQL数据库错误
 - `handleJWTError(error)`: 处理JWT相关错误
 - `handleError(error)`: 处理通用错误
 - `logError(error, context)`: 记录错误日志
@@ -194,7 +194,7 @@ JWT_SECRET=your-jwt-secret-key
 1. 所有密码都以明文形式存储（根据需求不进行加密）
 2. JWT令牌默认有效期为7天
 3. 所有API响应都包含统一的格式：success、data/error、statusCode、timestamp
-4. 错误处理支持Prisma数据库错误的自动转换
+4. 错误处理支持PostgreSQL数据库错误的自动转换
 5. 认证中间件支持Bearer Token格式的Authorization头部
 6. 所有验证函数都返回 `{ isValid: boolean; error?: string }` 格式的结果
 

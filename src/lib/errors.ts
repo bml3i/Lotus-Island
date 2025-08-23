@@ -64,33 +64,39 @@ export class DatabaseError extends AppError {
  */
 export class ErrorHandler {
   /**
-   * 处理Prisma错误
-   * @param error Prisma错误对象
+   * 处理数据库错误
+   * @param error 数据库错误对象
    * @returns 标准化的错误对象
    */
-  static handlePrismaError(error: { code?: string; meta?: { target?: string[] } }): AppError {
-    // P2002: 唯一约束违反
-    if (error.code === 'P2002') {
-      const field = error.meta?.target?.[0] || '字段';
-      return new ValidationError(`${field}已存在`);
+  static handleDatabaseError(error: { code?: string; constraint?: string; detail?: string }): AppError {
+    // PostgreSQL 唯一约束违反
+    if (error.code === '23505') {
+      const constraint = error.constraint || '';
+      if (constraint.includes('username')) {
+        return new ValidationError('用户名已存在');
+      }
+      if (constraint.includes('email')) {
+        return new ValidationError('邮箱已存在');
+      }
+      return new ValidationError('数据已存在');
     }
 
-    // P2025: 记录未找到
-    if (error.code === 'P2025') {
-      return new NotFoundError('请求的资源不存在');
+    // PostgreSQL 外键约束违反
+    if (error.code === '23503') {
+      return new ValidationError('引用的数据不存在');
     }
 
-    // P2003: 外键约束违反
-    if (error.code === 'P2003') {
-      return new ValidationError('关联数据不存在');
+    // PostgreSQL 非空约束违反
+    if (error.code === '23502') {
+      return new ValidationError('必填字段不能为空');
     }
 
-    // P1001: 数据库连接失败
-    if (error.code === 'P1001') {
+    // PostgreSQL 连接错误
+    if (error.code === '08006' || error.code === '08001') {
       return new DatabaseError('数据库连接失败');
     }
 
-    // 其他Prisma错误
+    // 其他数据库错误
     return new DatabaseError('数据库操作失败');
   }
 
@@ -126,9 +132,9 @@ export class ErrorHandler {
       return error;
     }
 
-    // 处理Prisma错误
-    if (typeof error === 'object' && error !== null && 'code' in error && typeof (error as { code: string }).code === 'string' && (error as { code: string }).code.startsWith('P')) {
-      return this.handlePrismaError(error as { code: string; meta?: { target?: string[] } });
+    // 处理数据库错误
+    if (typeof error === 'object' && error !== null && 'code' in error && typeof (error as { code: string }).code === 'string') {
+      return this.handleDatabaseError(error as { code: string; constraint?: string; detail?: string });
     }
 
     // 处理JWT错误

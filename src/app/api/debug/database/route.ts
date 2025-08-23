@@ -1,3 +1,4 @@
+import prisma from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -45,22 +46,25 @@ export async function GET(request: NextRequest) {
 
   // 尝试连接数据库
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient({
-      log: ['error'],
-    });
+    const { testConnection, getHealthStatus } = await import('@/lib/db');
 
     const databaseConnection: Record<string, unknown> = {
-      prismaClientCreated: true,
+      nativeClientCreated: true,
     };
 
     try {
-      await prisma.$connect();
-      databaseConnection.connected = true;
+      const connected = await testConnection();
+      databaseConnection.connected = connected;
 
-      // 尝试简单查询
-      const userCount = await prisma.user.count();
+      if (connected) {
+        // 获取健康状态
+        const health = await getHealthStatus();
+        databaseConnection.health = health;
+
+        // 尝试简单查询
+        const { UserModel } = await import('@/lib/models/user');
+        const users = await UserModel.findAll();
+        const userCount = users.length;
       databaseConnection.userCount = userCount;
       databaseConnection.querySuccess = true;
 

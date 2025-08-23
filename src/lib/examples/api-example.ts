@@ -229,10 +229,10 @@ export const errorDemoHandler = ApiMiddleware.withErrorHandling(
       case 'auth':
         throw new AuthenticationError('这是一个认证错误示例');
       
-      case 'prisma':
-        // 模拟Prisma错误
-        const prismaError = { code: 'P2002', meta: { target: ['username'] } };
-        throw ErrorHandler.handlePrismaError(prismaError);
+      case 'database':
+        // 模拟数据库错误
+        const dbError = { code: '23505', constraint: 'users_username_key' };
+        throw ErrorHandler.handleDatabaseError(dbError);
       
       case 'generic':
         throw new Error('这是一个通用错误示例');
@@ -240,7 +240,7 @@ export const errorDemoHandler = ApiMiddleware.withErrorHandling(
       default:
         return ApiResponseFormatter.success(
           { message: '错误演示API正常工作' },
-          '请使用 ?type=validation|auth|prisma|generic 参数来测试不同类型的错误'
+          '请使用 ?type=validation|auth|database|generic 参数来测试不同类型的错误'
         );
     }
   }

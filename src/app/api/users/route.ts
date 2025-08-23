@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { UserModel } from '@/lib/models/user';
+import { ItemModel } from '@/lib/models/item';
 import { 
   ApiResponseFormatter, 
   AuthMiddleware, 
@@ -15,18 +16,7 @@ import { User } from '@/types';
 export const GET = AuthMiddleware.withAuth(
   async (request: NextRequest, user) => {
     try {
-      const users = await prisma.user.findMany({
-        select: {
-          id: true,
-          username: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
+      const users = await UserModel.findAll();
 
       const formattedUsers: User[] = users.map(user => ({
         id: user.id,
@@ -79,19 +69,10 @@ export const POST = AuthMiddleware.withAuth(
       const passwordHash = await PasswordUtils.hashPassword(password);
 
       // 创建用户
-      const newUser = await prisma.user.create({
-        data: {
-          username,
-          passwordHash,
-          role,
-        },
-        select: {
-          id: true,
-          username: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true,
-        }
+      const newUser = await UserModel.create({
+        username,
+        passwordHash,
+        role,
       });
 
       // 为新用户自动分配10个莲子 (需求 2.1)
@@ -122,11 +103,7 @@ export const POST = AuthMiddleware.withAuth(
 async function assignInitialLotusSeeds(userId: string): Promise<void> {
   try {
     // 查找莲子物品
-    const lotusItem = await prisma.item.findFirst({
-      where: {
-        name: '莲子'
-      }
-    });
+    const lotusItem = await ItemModel.findByName('莲子');
 
     if (!lotusItem) {
       console.warn('莲子物品不存在，跳过初始分配');
@@ -134,24 +111,7 @@ async function assignInitialLotusSeeds(userId: string): Promise<void> {
     }
 
     // 为用户分配10个莲子
-    await prisma.userItem.upsert({
-      where: {
-        userId_itemId: {
-          userId,
-          itemId: lotusItem.id
-        }
-      },
-      update: {
-        quantity: {
-          increment: 10
-        }
-      },
-      create: {
-        userId,
-        itemId: lotusItem.id,
-        quantity: 10
-      }
-    });
+    await UserModel.assignInitialItems(userId, lotusItem.id, 10);
   } catch (error) {
     console.error('分配初始莲子失败:', error);
     // 不抛出错误，避免影响用户创建

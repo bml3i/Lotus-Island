@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { UserModel } from '@/lib/models/user';
 import { PasswordUtils, TokenUtils, ApiResponseFormatter } from '@/lib/utils';
 
 export async function POST(request: NextRequest) {
@@ -36,17 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 查找用户
-    const user = await prisma.user.findUnique({
-      where: { username },
-      select: {
-        id: true,
-        username: true,
-        passwordHash: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true
-      }
-    });
+    const user = await UserModel.findByUsername(username);
 
     if (!user) {
       return ApiResponseFormatter.unauthorized('用户名或密码错误');
