@@ -3,12 +3,9 @@ const fs = require('fs');
 const path = require('path');
 
 // 数据库连接配置
+require('dotenv').config();
 const client = new Client({
-  host: 'localhost',
-  port: 5432,
-  user: 'pgadmin',
-  password: 'Postgres@123',
-  database: 'mydb',
+  connectionString: process.env.DATABASE_URL
 });
 
 async function executeSqlFile(filename) {
@@ -32,10 +29,14 @@ async function executeSqlFile(filename) {
         try {
           const result = await client.query(statement);
           
-          // 如果是SELECT语句且有结果，显示结果
-          if (statement.toUpperCase().startsWith('SELECT') && result.rows && result.rows.length > 0) {
+          // 如果是SELECT语句，显示结果
+          if (statement.toUpperCase().startsWith('SELECT')) {
             console.log(`\n查询结果 ${i + 1}:`);
-            console.table(result.rows);
+            if (result.rows && result.rows.length > 0) {
+              console.table(result.rows);
+            } else {
+              console.log('没有找到数据');
+            }
           }
         } catch (error) {
           // 忽略一些预期的错误（如DROP TABLE IF EXISTS）

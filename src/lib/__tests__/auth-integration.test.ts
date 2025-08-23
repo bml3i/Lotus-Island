@@ -5,13 +5,13 @@ async function testAuthenticationFlow() {
   console.log('🔄 Testing Complete Authentication Flow...\n');
   
   try {
-    // 1. 测试密码哈希和验证
-    console.log('Step 1: Password Hashing and Verification');
+    // 1. 测试密码存储和验证 (明文)
+    console.log('Step 1: Password Storage and Verification (Plaintext)');
     const originalPassword = 'Password@123';
-    const hashedPassword = await PasswordUtils.hashPassword(originalPassword);
-    console.log('✓ Password hashed successfully');
+    const storedPassword = await PasswordUtils.hashPassword(originalPassword);
+    console.log('✓ Password stored successfully (plaintext)');
     
-    const isPasswordValid = await PasswordUtils.verifyPassword(originalPassword, hashedPassword);
+    const isPasswordValid = await PasswordUtils.verifyPassword(originalPassword, storedPassword);
     console.log('✓ Password verification:', isPasswordValid ? 'PASS' : 'FAIL');
     
     // 2. 测试JWT令牌生成和验证

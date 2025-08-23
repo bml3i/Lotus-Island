@@ -191,7 +191,7 @@ JWT_SECRET=your-jwt-secret-key
 
 ## 注意事项
 
-1. 所有密码都使用bcrypt进行哈希处理，盐轮数为12
+1. 所有密码都以明文形式存储（根据需求不进行加密）
 2. JWT令牌默认有效期为7天
 3. 所有API响应都包含统一的格式：success、data/error、statusCode、timestamp
 4. 错误处理支持Prisma数据库错误的自动转换

@@ -13,7 +13,7 @@ describe('Backpack API Tests', () => {
   let testItem: { id: string };
 
   beforeAll(async () => {
-    // Create test user
+    // Create test user (plaintext password)
     const passwordHash = await PasswordUtils.hashPassword('testpass123');
     const user = await prisma.user.create({
       data: {

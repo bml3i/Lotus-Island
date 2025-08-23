@@ -13,12 +13,12 @@ async function testCompleteAuthSystem() {
       role: 'user'
     };
     
-    const hashedPassword = await PasswordUtils.hashPassword(userData.password);
-    console.log('✓ Password hashed for user creation');
+    const storedPassword = await PasswordUtils.hashPassword(userData.password);
+    console.log('✓ Password stored for user creation (plaintext)');
     
     // 2. 模拟登录验证流程
     console.log('\nStep 2: Login Verification Flow');
-    const isPasswordValid = await PasswordUtils.verifyPassword(userData.password, hashedPassword);
+    const isPasswordValid = await PasswordUtils.verifyPassword(userData.password, storedPassword);
     console.log('✓ Password verification:', isPasswordValid ? 'PASS' : 'FAIL');
     
     if (isPasswordValid) {
@@ -77,11 +77,11 @@ async function testCompleteAuthSystem() {
       console.log('\nStep 8: Edge Cases Testing');
       
       // 空密码测试
-      const emptyPasswordValid = await PasswordUtils.verifyPassword('', hashedPassword);
+      const emptyPasswordValid = await PasswordUtils.verifyPassword('', storedPassword);
       console.log('✓ Empty password rejection:', !emptyPasswordValid ? 'PASS' : 'FAIL');
       
       // 错误密码测试
-      const wrongPasswordValid = await PasswordUtils.verifyPassword('WrongPassword', hashedPassword);
+      const wrongPasswordValid = await PasswordUtils.verifyPassword('WrongPassword', storedPassword);
       console.log('✓ Wrong password rejection:', !wrongPasswordValid ? 'PASS' : 'FAIL');
       
       // 空Authorization头部测试
@@ -172,7 +172,7 @@ async function runAuthSystemTests() {
     testAPIEndpointStructure();
     console.log('\n🎉 All authentication system tests passed successfully!');
     console.log('\n📋 Implementation Summary:');
-    console.log('✅ Password hashing and verification');
+    console.log('✅ Password storage and verification (plaintext)');
     console.log('✅ JWT token generation and validation');
     console.log('✅ Authentication middleware');
     console.log('✅ Authorization and permission checking');

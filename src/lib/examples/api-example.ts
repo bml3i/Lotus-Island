@@ -53,7 +53,7 @@ export const loginHandler = ApiMiddleware.withErrorHandling(
     const mockUser = {
       id: '123e4567-e89b-12d3-a456-426614174000',
       username: 'admin',
-      passwordHash: await PasswordUtils.hashPassword('Password@123'),
+      passwordHash: await PasswordUtils.hashPassword('Password@123'), // 明文存储
       role: 'admin'
     };
 
@@ -138,8 +138,8 @@ export const createUserHandler = AuthMiddleware.withAuth(
       throw new ValidationError(roleValidation.error);
     }
 
-    // 创建新用户（模拟）
-    const hashedPassword = await PasswordUtils.hashPassword(password);
+    // 创建新用户（模拟，明文密码存储）
+    const storedPassword = await PasswordUtils.hashPassword(password);
     const newUser = {
       id: CommonUtils.generateRandomString(36),
       username,

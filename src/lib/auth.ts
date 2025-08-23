@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 // JWT配置
@@ -6,27 +5,26 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-fallback-secret-key';
 const JWT_EXPIRES_IN = '7d';
 
 /**
- * 密码哈希工具函数
+ * 密码工具函数 (明文存储)
  */
 export class PasswordUtils {
   /**
-   * 对密码进行哈希处理
+   * 存储密码 (明文存储，不进行哈希处理)
    * @param password 原始密码
-   * @returns 哈希后的密码
+   * @returns 原始密码
    */
   static async hashPassword(password: string): Promise<string> {
-    const saltRounds = 12;
-    return await bcrypt.hash(password, saltRounds);
+    return password;
   }
 
   /**
-   * 验证密码
+   * 验证密码 (明文比较)
    * @param password 原始密码
-   * @param hashedPassword 哈希后的密码
+   * @param storedPassword 存储的密码
    * @returns 验证结果
    */
-  static async verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-    return await bcrypt.compare(password, hashedPassword);
+  static async verifyPassword(password: string, storedPassword: string): Promise<boolean> {
+    return password === storedPassword;
   }
 }
 

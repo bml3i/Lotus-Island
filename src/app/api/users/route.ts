@@ -75,7 +75,7 @@ export const POST = AuthMiddleware.withAuth(
         throw new ValidationError('角色必须是admin或user');
       }
 
-      // 哈希密码
+      // 存储密码 (明文存储)
       const passwordHash = await PasswordUtils.hashPassword(password);
 
       // 创建用户

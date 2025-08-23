@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -43,17 +42,17 @@ async function main() {
 
   console.log('物品创建完成:', { lotusItem: lotusItem.name, tvTicketItem: tvTicketItem.name });
 
-  // 创建默认管理员账户
+  // 创建默认管理员账户 (明文密码存储)
   console.log('创建默认管理员账户...');
-  
-  const hashedPassword = await bcrypt.hash('Password@123', 12);
   
   const adminUser = await prisma.user.upsert({
     where: { username: 'admin' },
-    update: {},
+    update: {
+      passwordHash: 'Password@123', // 更新为明文密码
+    },
     create: {
       username: 'admin',
-      passwordHash: hashedPassword,
+      passwordHash: 'Password@123', // 明文密码存储
       role: 'admin',
     },
   });

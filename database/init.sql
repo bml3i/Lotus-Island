@@ -156,9 +156,9 @@ BEGIN
     -- 获取电视券物品ID
     SELECT "id" INTO tv_ticket_item_id FROM "items" WHERE "name" = '20分钟电视券';
     
-    -- 插入默认管理员账户（密码：Password@123）
+    -- 插入默认管理员账户（密码：Password@123，明文存储）
     INSERT INTO "users" ("username", "password_hash", "role") VALUES
-    ('admin', '$2b$12$01JqJwuCdPh0caOl2k51IORf78Sp/QKTDb9nG0fgk1j4yy5F3EdLa', 'admin')
+    ('admin', 'Password@123', 'admin')
     RETURNING "id" INTO admin_user_id;
     
     -- 插入兑换规则：10个莲子兑换1个20分钟电视券

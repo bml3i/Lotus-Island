@@ -97,7 +97,7 @@ export async function PUT(
           updateData.username = username;
         }
 
-        // 验证并更新密码
+        // 验证并更新密码 (明文存储)
         if (password !== undefined) {
           if (password.length < 6) {
             throw new ValidationError('密码长度不能少于6个字符');

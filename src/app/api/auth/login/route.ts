@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       return ApiResponseFormatter.unauthorized('用户名或密码错误');
     }
 
-    // 验证密码
+    // 验证密码 (明文比较)
     const isPasswordValid = await PasswordUtils.verifyPassword(password, user.passwordHash);
     if (!isPasswordValid) {
       return ApiResponseFormatter.unauthorized('用户名或密码错误');

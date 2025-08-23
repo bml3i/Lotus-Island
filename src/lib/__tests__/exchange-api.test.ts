@@ -16,7 +16,7 @@ describe('Exchange API Tests', () => {
   let exchangeRule: { id: string };
 
   beforeAll(async () => {
-    // Create test user
+    // Create test user (plaintext password)
     const userPasswordHash = await PasswordUtils.hashPassword('testpass123');
     const user = await prisma.user.create({
       data: {
@@ -34,7 +34,7 @@ describe('Exchange API Tests', () => {
 
     testUser = { id: user.id, token: userToken };
 
-    // Create test admin
+    // Create test admin (plaintext password)
     const adminPasswordHash = await PasswordUtils.hashPassword('adminpass123');
     const admin = await prisma.user.create({
       data: {

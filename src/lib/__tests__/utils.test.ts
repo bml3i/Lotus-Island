@@ -6,13 +6,13 @@ async function testPasswordUtils() {
   console.log('Testing PasswordUtils...');
   
   const password = 'testPassword123';
-  const hashedPassword = await PasswordUtils.hashPassword(password);
-  console.log('✓ Password hashed successfully');
+  const storedPassword = await PasswordUtils.hashPassword(password);
+  console.log('✓ Password stored successfully (plaintext)');
   
-  const isValid = await PasswordUtils.verifyPassword(password, hashedPassword);
+  const isValid = await PasswordUtils.verifyPassword(password, storedPassword);
   console.log('✓ Password verification:', isValid ? 'PASS' : 'FAIL');
   
-  const isInvalid = await PasswordUtils.verifyPassword('wrongPassword', hashedPassword);
+  const isInvalid = await PasswordUtils.verifyPassword('wrongPassword', storedPassword);
   console.log('✓ Wrong password verification:', !isInvalid ? 'PASS' : 'FAIL');
 }
 
