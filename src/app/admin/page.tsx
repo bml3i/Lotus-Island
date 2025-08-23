@@ -21,41 +21,65 @@ function AdminPage() {
         return <UserManagement onClose={() => setActiveView('dashboard')} />;
       case 'items':
         return (
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">物品管理</h2>
-            <p className="text-gray-600">物品管理功能正在开发中...</p>
-            <button
-              onClick={() => setActiveView('dashboard')}
-              className="mt-4 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            >
-              返回
-            </button>
+          <div className="bg-white rounded-lg shadow-lg">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center space-x-4">
+              <button
+                onClick={() => setActiveView('dashboard')}
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                title="返回首页"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="text-sm">返回</span>
+              </button>
+              <h2 className="text-xl font-semibold text-gray-900">物品管理</h2>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-600">物品管理功能正在开发中...</p>
+            </div>
           </div>
         );
       case 'activities':
         return (
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">活动配置</h2>
-            <p className="text-gray-600">活动配置功能正在开发中...</p>
-            <button
-              onClick={() => setActiveView('dashboard')}
-              className="mt-4 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            >
-              返回
-            </button>
+          <div className="bg-white rounded-lg shadow-lg">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center space-x-4">
+              <button
+                onClick={() => setActiveView('dashboard')}
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                title="返回首页"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="text-sm">返回</span>
+              </button>
+              <h2 className="text-xl font-semibold text-gray-900">活动配置</h2>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-600">活动配置功能正在开发中...</p>
+            </div>
           </div>
         );
       case 'stats':
         return (
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">系统统计</h2>
-            <p className="text-gray-600">系统统计功能正在开发中...</p>
-            <button
-              onClick={() => setActiveView('dashboard')}
-              className="mt-4 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            >
-              返回
-            </button>
+          <div className="bg-white rounded-lg shadow-lg">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center space-x-4">
+              <button
+                onClick={() => setActiveView('dashboard')}
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                title="返回首页"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="text-sm">返回</span>
+              </button>
+              <h2 className="text-xl font-semibold text-gray-900">系统统计</h2>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-600">系统统计功能正在开发中...</p>
+            </div>
           </div>
         );
       default:
@@ -122,17 +146,23 @@ function AdminPage() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <span className="text-2xl">🪷</span>
-              <h1 className="ml-2 text-xl font-semibold text-gray-900">莲花岛 - 管理后台</h1>
+            <div className="flex items-center space-x-4">
               {activeView !== 'dashboard' && (
                 <button
                   onClick={() => setActiveView('dashboard')}
-                  className="ml-4 text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                  title="返回首页"
                 >
-                  ← 返回首页
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  <span className="text-sm">返回</span>
                 </button>
               )}
+              <div className="flex items-center">
+                <span className="text-2xl">🪷</span>
+                <h1 className="ml-2 text-xl font-semibold text-gray-900">莲花岛 - 管理后台</h1>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">管理员: {user?.username}</span>
