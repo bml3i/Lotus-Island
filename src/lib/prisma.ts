@@ -1,9 +1,5 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from './database';
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
-
-export const prisma = globalForPrisma.prisma ?? new PrismaClient()
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// 重新导出数据库连接，保持向后兼容
+export { prisma, testDatabaseConnection, getDatabaseHealth } from './database';
+export default prisma;

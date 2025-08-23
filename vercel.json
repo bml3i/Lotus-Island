@@ -11,6 +11,33 @@
   "env": {
     "DATABASE_URL": "@database_url",
     "JWT_SECRET": "@jwt_secret",
-    "NEXTAUTH_URL": "@nextauth_url"
-  }
+    "NEXTAUTH_URL": "@nextauth_url",
+    "DATABASE_POOL_SIZE": "@database_pool_size",
+    "DATABASE_TIMEOUT": "@database_timeout",
+    "DATABASE_SSL_MODE": "@database_ssl_mode"
+  },
+  "build": {
+    "env": {
+      "DATABASE_URL": "@database_url"
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
 }
