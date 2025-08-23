@@ -190,13 +190,6 @@ export function LoginForm({ onSuccess, isLoading, setIsLoading }: LoginFormProps
           '登录'
         )}
       </button>
-
-      {/* 默认账户提示 */}
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-700 font-medium mb-1">默认管理员账户：</p>
-        <p className="text-sm text-blue-600">用户名: admin</p>
-        <p className="text-sm text-blue-600">密码: Password@123</p>
-      </div>
     </form>
   );
 }
