@@ -4,15 +4,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabaseHealth, getMigrationStatus } from '@/lib/database';
+import { getDatabaseHealthStatus } from '@/lib/database';
 
 export async function GET(request: NextRequest) {
   try {
     // 获取数据库健康状态
-    const dbHealth = await getDatabaseHealth();
-    
-    // 获取迁移状态
-    const migrationStatus = await getMigrationStatus();
+    const dbHealth = await getDatabaseHealthStatus();
     
     // 系统信息
     const systemInfo = {
@@ -23,12 +20,11 @@ export async function GET(request: NextRequest) {
     };
     
     // 整体健康状态
-    const isHealthy = dbHealth.connected && migrationStatus.applied > 0;
+    const isHealthy = dbHealth.connected;
     
     const healthData = {
       status: isHealthy ? 'healthy' : 'unhealthy',
       database: dbHealth,
-      migrations: migrationStatus,
       system: systemInfo
     };
     

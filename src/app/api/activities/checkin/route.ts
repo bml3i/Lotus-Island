@@ -67,9 +67,13 @@ export const POST = AuthMiddleware.withAuth(
 
       return ApiResponseFormatter.success({
         success: true,
-        reward: result.reward,
-        checkInTime: result.checkInRecord.createdAt
-      }, `签到成功！获得 ${result.reward.quantity} 个${result.reward.itemName}`);
+        reward: {
+          itemName: rewardConfig.reward.itemName,
+          quantity: rewardConfig.reward.quantity
+        },
+        totalReward: result.totalReward,
+        checkInTime: result.record.createdAt
+      }, `签到成功！获得 ${rewardConfig.reward.quantity} 个${rewardConfig.reward.itemName}`);
     } catch (error) {
       const appError = ErrorHandler.handleError(error);
       ErrorHandler.logError(appError, 'POST /api/activities/checkin');

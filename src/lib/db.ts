@@ -44,8 +44,7 @@ export function getPool(): Pool {
       ...config,
       max: 10, // 减少最大连接数，适合Supabase
       idleTimeoutMillis: 30000, // 空闲连接超时
-      connectionTimeoutMillis: 10000, // 增加连接超时到10秒
-      acquireTimeoutMillis: 10000, // 获取连接超时
+      connectionTimeoutMillis: 10000, // 连接超时
       statement_timeout: 30000, // SQL语句超时
       query_timeout: 30000, // 查询超时
     });

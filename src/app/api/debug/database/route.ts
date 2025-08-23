@@ -65,10 +65,11 @@ export async function GET(request: NextRequest) {
         const { UserModel } = await import('@/lib/models/user');
         const users = await UserModel.findAll();
         const userCount = users.length;
-      databaseConnection.userCount = userCount;
-      databaseConnection.querySuccess = true;
+        databaseConnection.userCount = userCount;
+        databaseConnection.querySuccess = true;
 
-      await prisma.$disconnect();
+        await prisma.$disconnect();
+      }
     } catch (connectionError: unknown) {
       databaseConnection.connected = false;
       databaseConnection.error = connectionError instanceof Error ? connectionError.message : 'Unknown error';

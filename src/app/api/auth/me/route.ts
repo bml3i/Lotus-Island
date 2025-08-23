@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { UserModel } from '@/lib/models/user';
 import { ApiResponseFormatter, AuthMiddleware } from '@/lib/utils';
 
 export const GET = AuthMiddleware.withAuth(
@@ -10,16 +10,7 @@ export const GET = AuthMiddleware.withAuth(
       }
 
       // 获取用户完整信息
-      const currentUser = await prisma.user.findUnique({
-        where: { id: user.userId },
-        select: {
-          id: true,
-          username: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true
-        }
-      });
+      const currentUser = await UserModel.findById(user.userId);
 
       if (!currentUser) {
         return ApiResponseFormatter.unauthorized('用户不存在');

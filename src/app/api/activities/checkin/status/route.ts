@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { UserModel } from '@/lib/models/user';
+import { ActivityModel } from '@/lib/models/activity';
 import { 
   ApiResponseFormatter, 
   AuthMiddleware, 
@@ -15,19 +16,15 @@ export const GET = AuthMiddleware.withAuth(
     try {
       const today = CommonUtils.formatDate(new Date());
       
-      // 查找今日签到记录
-      const todayCheckIn = await prisma.userActivityRecord.findFirst({
-        where: {
-          userId: user!.userId,
-          activity: {
-            type: 'checkin'
-          },
-          recordDate: new Date(today)
-        },
-        include: {
-          activity: true
-        }
-      });
+      // 查找签到活动
+      const checkInActivity = await ActivityModel.findFirstByType('checkin');
+      
+      let todayCheckIn = null;
+      if (checkInActivity) {
+        // 查找今日签到记录
+        const { UserActivityRecordModel } = await import('@/lib/models/activity');
+        todayCheckIn = await UserActivityRecordModel.findTodayRecord(user!.userId, checkInActivity.id);
+      }
 
       const canCheckIn = !todayCheckIn;
       const lastCheckIn = todayCheckIn?.createdAt || null;

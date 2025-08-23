@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { ActivityModel } from '@/lib/models/activity';
 import { AuthMiddleware, ApiResponseFormatter } from '@/lib/utils';
 
 // GET /api/activities - 获取所有活动配置
@@ -9,22 +9,14 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type');
     const includeInactive = searchParams.get('includeInactive') === 'true';
 
-    const whereClause: Record<string, unknown> = {};
-    
+    let activities;
     if (type) {
-      whereClause.type = type;
+      activities = await ActivityModel.findByType(type);
+    } else if (includeInactive) {
+      activities = await ActivityModel.findAll();
+    } else {
+      activities = await ActivityModel.findActive();
     }
-    
-    if (!includeInactive) {
-      whereClause.isActive = true;
-    }
-
-    const activities = await prisma.activity.findMany({
-      where: whereClause,
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
 
     return ApiResponseFormatter.success(activities);
   } catch (error) {
@@ -44,13 +36,11 @@ export const POST = AuthMiddleware.withAuth(
         return ApiResponseFormatter.badRequest('缺少必要参数');
       }
 
-      const activity = await prisma.activity.create({
-        data: {
-          name,
-          type,
-          config,
-          isActive: true
-        }
+      const activity = await ActivityModel.create({
+        name,
+        type,
+        config,
+        isActive: true
       });
 
       return ApiResponseFormatter.created(activity);

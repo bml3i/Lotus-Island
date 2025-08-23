@@ -23,15 +23,21 @@ interface DatabaseConfig {
  * @returns 数据库配置对象
  */
 function getDatabaseConfig(): DatabaseConfig {
-  const env = getDatabaseEnv();
+  // 从 DATABASE_URL 解析配置
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
+  
+  const url = new URL(databaseUrl);
   
   return {
-    host: env.DB_HOST,
-    port: env.DB_PORT,
-    database: env.DB_NAME,
-    username: env.DB_USER,
-    password: env.DB_PASSWORD,
-    ssl: env.DB_SSL
+    host: url.hostname,
+    port: parseInt(url.port) || 5432,
+    database: url.pathname.slice(1),
+    username: url.username,
+    password: decodeURIComponent(url.password),
+    ssl: url.searchParams.get('sslmode') === 'require'
   };
 }
 
