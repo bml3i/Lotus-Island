@@ -51,7 +51,7 @@ export class UserModel {
     if (limit) {
       sql += ' LIMIT $1';
       params.push(limit);
-      
+
       if (offset) {
         sql += ' OFFSET $2';
         params.push(offset);

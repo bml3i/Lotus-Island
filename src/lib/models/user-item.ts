@@ -129,21 +129,24 @@ export class UserItemModel {
 
   // 获取使用历史
   static async getUsageHistory(
-    userId: string, 
-    limit: number = 20, 
+    userId: string,
+    limit: number = 20,
     offset: number = 0,
     itemId?: string
   ): Promise<{ histories: UsageHistory[]; total: number }> {
+    // 构建查询条件和参数
+    const baseParams = [userId];
     let whereClause = 'WHERE uh.user_id = $1';
-    const params: any[] = [userId];
-    let paramIndex = 2;
 
     if (itemId) {
-      whereClause += ` AND uh.item_id = $${paramIndex++}`;
-      params.push(itemId);
+      baseParams.push(itemId);
+      whereClause += ' AND uh.item_id = $2';
     }
 
     // 获取历史记录
+    const historiesParams = [...baseParams, limit, offset];
+    const limitOffset = itemId ? '$3 OFFSET $4' : '$2 OFFSET $3';
+
     const historiesQuery = `
       SELECT 
         uh.id,
@@ -159,9 +162,8 @@ export class UserItemModel {
       JOIN items i ON uh.item_id = i.id
       ${whereClause}
       ORDER BY uh.used_at DESC
-      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+      LIMIT ${limitOffset}
     `;
-    params.push(limit, offset);
 
     // 获取总数
     const countQuery = `
@@ -169,11 +171,10 @@ export class UserItemModel {
       FROM usage_history uh
       ${whereClause}
     `;
-    const countParams = params.slice(0, paramIndex - 2); // 移除limit和offset参数
 
     const [histories, countResult] = await Promise.all([
-      query<UsageHistory>(historiesQuery, params),
-      queryOne<{ count: string }>(countQuery, countParams)
+      query<UsageHistory>(historiesQuery, historiesParams),
+      queryOne<{ count: string }>(countQuery, baseParams)
     ]);
 
     return {

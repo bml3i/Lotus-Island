@@ -9,8 +9,8 @@ import { ExchangeRule } from '@/types';
 export const GET = AuthMiddleware.withAuth(
   async () => {
     try {
-      // TODO: 使用 ExchangeRuleModel 替代 Prisma
-      return ApiResponseFormatter.error('此 API 正在迁移中，请稍后再试', 503);
+      const rules = await ExchangeRuleModel.findAll();
+      return ApiResponseFormatter.success(rules);
     } catch (error) {
       const appError = ErrorHandler.handleError(error);
       ErrorHandler.logError(appError, 'GET /api/activities/exchange/rules');
@@ -26,8 +26,27 @@ export const GET = AuthMiddleware.withAuth(
 export const POST = AuthMiddleware.withAuth(
   async (request: NextRequest, user) => {
     try {
-      // TODO: 使用新的数据库模型替代 Prisma
-      return ApiResponseFormatter.error('此 API 正在迁移中，请稍后再试', 503);
+      const body = await request.json();
+      
+      // 验证必需字段
+      if (!body.fromItemId || !body.toItemId || !body.fromQuantity || !body.toQuantity) {
+        return ApiResponseFormatter.badRequest('缺少必需字段：fromItemId, toItemId, fromQuantity, toQuantity');
+      }
+
+      // 验证数量为正数
+      if (body.fromQuantity <= 0 || body.toQuantity <= 0) {
+        return ApiResponseFormatter.badRequest('兑换数量必须大于0');
+      }
+
+      const rule = await ExchangeRuleModel.create({
+        fromItemId: body.fromItemId,
+        toItemId: body.toItemId,
+        fromQuantity: body.fromQuantity,
+        toQuantity: body.toQuantity,
+        isActive: body.isActive !== false
+      });
+
+      return ApiResponseFormatter.success(rule);
     } catch (error) {
       const appError = ErrorHandler.handleError(error);
       ErrorHandler.logError(appError, 'POST /api/activities/exchange/rules');

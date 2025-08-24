@@ -10,8 +10,8 @@ import { ExchangeRule } from '@/types';
 export const GET = AuthMiddleware.withAuth(
   async () => {
     try {
-      // TODO: 使用 ExchangeRuleModel 替代 Prisma
-      return ApiResponseFormatter.error('此 API 正在迁移中，请稍后再试', 503);
+      const rules = await ExchangeRuleModel.findActive();
+      return ApiResponseFormatter.success(rules);
     } catch (error) {
       const appError = ErrorHandler.handleError(error);
       ErrorHandler.logError(appError, 'GET /api/activities/exchange');
@@ -27,8 +27,28 @@ export const GET = AuthMiddleware.withAuth(
 export const POST = AuthMiddleware.withAuth(
   async (request: NextRequest, user) => {
     try {
-      // TODO: 使用新的数据库模型替代 Prisma
-      return ApiResponseFormatter.error('此 API 正在迁移中，请稍后再试', 503);
+      const body = await request.json();
+      
+      // 验证必需字段
+      if (!body.ruleId) {
+        return ApiResponseFormatter.badRequest('缺少兑换规则ID');
+      }
+
+      const quantity = body.quantity || 1;
+      if (quantity <= 0) {
+        return ApiResponseFormatter.badRequest('兑换数量必须大于0');
+      }
+
+      const result = await ExchangeRuleModel.performExchange(user!.userId, body.ruleId, quantity);
+      
+      if (!result.success) {
+        return ApiResponseFormatter.badRequest(result.message);
+      }
+
+      return ApiResponseFormatter.success({
+        message: result.message,
+        newQuantities: result.newQuantities
+      });
     } catch (error) {
       const appError = ErrorHandler.handleError(error);
       ErrorHandler.logError(appError, 'POST /api/activities/exchange');

@@ -13,8 +13,32 @@ export async function PUT(
   return AuthMiddleware.withAuth(
     async (req: NextRequest, user) => {
       try {
-        // TODO: 使用新的数据库模型替代 Prisma
-        return ApiResponseFormatter.error('此 API 正在迁移中，请稍后再试', 503);
+        const { id } = await params;
+        const body = await req.json();
+        
+        // 验证输入
+        const updateData: any = {};
+        if (body.fromQuantity !== undefined) {
+          if (body.fromQuantity <= 0) {
+            return ApiResponseFormatter.badRequest('源物品数量必须大于0');
+          }
+          updateData.fromQuantity = body.fromQuantity;
+        }
+        
+        if (body.toQuantity !== undefined) {
+          if (body.toQuantity <= 0) {
+            return ApiResponseFormatter.badRequest('目标物品数量必须大于0');
+          }
+          updateData.toQuantity = body.toQuantity;
+        }
+        
+        if (body.isActive !== undefined) {
+          updateData.isActive = body.isActive;
+        }
+
+        const updatedRule = await ExchangeRuleModel.update(id, updateData);
+        
+        return ApiResponseFormatter.success(updatedRule);
       } catch (error) {
         const appError = ErrorHandler.handleError(error);
         ErrorHandler.logError(appError, 'PUT /api/activities/exchange/rules/[id]');
@@ -35,8 +59,11 @@ export async function DELETE(
   return AuthMiddleware.withAuth(
     async (req: NextRequest, user) => {
       try {
-        // TODO: 使用新的数据库模型替代 Prisma
-        return ApiResponseFormatter.error('此 API 正在迁移中，请稍后再试', 503);
+        const { id } = await params;
+        
+        await ExchangeRuleModel.delete(id);
+        
+        return ApiResponseFormatter.success({ message: '兑换规则删除成功' });
       } catch (error) {
         const appError = ErrorHandler.handleError(error);
         ErrorHandler.logError(appError, 'DELETE /api/activities/exchange/rules/[id]');

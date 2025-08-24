@@ -1,4 +1,3 @@
-import prisma from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -68,7 +67,7 @@ export async function GET(request: NextRequest) {
         databaseConnection.userCount = userCount;
         databaseConnection.querySuccess = true;
 
-        await prisma.$disconnect();
+        // 连接会自动释放
       }
     } catch (connectionError: unknown) {
       databaseConnection.connected = false;
@@ -114,19 +113,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 尝试查找用户
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { PrismaClient } = require('@prisma/client');
-    const prisma = new PrismaClient();
-
-    const user = await prisma.user.findUnique({
-      where: { username },
-      select: {
-        id: true,
-        username: true,
-        passwordHash: true,
-        role: true,
-      }
-    });
+    const { UserModel } = await import('@/lib/models/user');
+    
+    const user = await UserModel.findByUsername(username);
 
     if (!user) {
       return NextResponse.json({
@@ -138,8 +127,6 @@ export async function POST(request: NextRequest) {
 
     // 验证密码（明文比较）
     const isPasswordValid = password === user.passwordHash;
-
-    await prisma.$disconnect();
 
     return NextResponse.json({
       success: isPasswordValid,

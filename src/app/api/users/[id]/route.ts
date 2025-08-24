@@ -20,8 +20,22 @@ export async function GET(
   return AuthMiddleware.withAuth(
     async (req: NextRequest, user) => {
       try {
-        // TODO: 使用新的数据库模型替代 Prisma
-        return ApiResponseFormatter.error('此 API 正在迁移中，请稍后再试', 503);
+        const { id } = await params;
+        const targetUser = await UserModel.findById(id);
+        
+        if (!targetUser) {
+          throw new NotFoundError('用户不存在');
+        }
+
+        // 只有管理员或用户本人可以查看详细信息
+        if (user!.role !== 'admin' && user!.userId !== id) {
+          return ApiResponseFormatter.forbidden('无权限访问此用户信息');
+        }
+
+        // 移除敏感信息
+        const { passwordHash, ...safeUser } = targetUser;
+        
+        return ApiResponseFormatter.success(safeUser);
       } catch (error) {
         const appError = ErrorHandler.handleError(error);
         ErrorHandler.logError(appError, 'GET /api/users/[id]');
@@ -42,8 +56,40 @@ export async function PUT(
   return AuthMiddleware.withAuth(
     async (req: NextRequest, user) => {
       try {
-        // TODO: 使用新的数据库模型替代 Prisma
-        return ApiResponseFormatter.error('此 API 正在迁移中，请稍后再试', 503);
+        const { id } = await params;
+        const body = await req.json();
+        
+        // 只有管理员或用户本人可以更新信息
+        if (user!.role !== 'admin' && user!.userId !== id) {
+          return ApiResponseFormatter.forbidden('无权限修改此用户信息');
+        }
+        
+        // 验证输入
+        if (body.username && typeof body.username !== 'string') {
+          throw new ValidationError('用户名必须是字符串');
+        }
+        
+        if (body.role && !['admin', 'user'].includes(body.role)) {
+          throw new ValidationError('角色必须是 admin 或 user');
+        }
+
+        // 非管理员不能修改角色
+        if (user!.role !== 'admin' && body.role) {
+          throw new ValidationError('只有管理员可以修改用户角色');
+        }
+
+        // 如果更新密码，需要处理
+        const updateData: any = {};
+        if (body.username) updateData.username = body.username;
+        if (body.role && user!.role === 'admin') updateData.role = body.role;
+        if (body.password) updateData.passwordHash = body.password; // 明文存储
+
+        const updatedUser = await UserModel.update(id, updateData);
+        
+        // 移除敏感信息
+        const { passwordHash, ...safeUser } = updatedUser;
+        
+        return ApiResponseFormatter.success(safeUser);
       } catch (error) {
         const appError = ErrorHandler.handleError(error);
         ErrorHandler.logError(appError, 'PUT /api/users/[id]');
@@ -64,8 +110,16 @@ export async function DELETE(
   return AuthMiddleware.withAuth(
     async (req: NextRequest, user) => {
       try {
-        // TODO: 使用新的数据库模型替代 Prisma
-        return ApiResponseFormatter.error('此 API 正在迁移中，请稍后再试', 503);
+        const { id } = await params;
+        
+        // 不能删除自己
+        if (user!.userId === id) {
+          throw new ValidationError('不能删除自己的账户');
+        }
+
+        await UserModel.delete(id);
+        
+        return ApiResponseFormatter.success({ message: '用户删除成功' });
       } catch (error) {
         const appError = ErrorHandler.handleError(error);
         ErrorHandler.logError(appError, 'DELETE /api/users/[id]');

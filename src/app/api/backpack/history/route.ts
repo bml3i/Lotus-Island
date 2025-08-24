@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { UserModel } from '@/lib/models/user';
 import { ItemModel } from '@/lib/models/item';
 import { 
@@ -14,8 +14,35 @@ import { UsageHistory } from '@/types';
 export const GET = AuthMiddleware.withAuth(
   async (request: NextRequest, user) => {
     try {
-      // TODO: 使用新的数据库模型替代 Prisma
-      return ApiResponseFormatter.error('此 API 正在迁移中，请稍后再试', 503);
+      const { searchParams } = new URL(request.url);
+      const limit = parseInt(searchParams.get('limit') || '20');
+      const page = parseInt(searchParams.get('page') || '1');
+      const offset = (page - 1) * limit;
+      const itemId = searchParams.get('itemId') || undefined;
+
+      // 导入 UserItemModel
+      const { UserItemModel } = await import('@/lib/models/user-item');
+      
+      const result = await UserItemModel.getUsageHistory(user!.userId, limit, offset, itemId);
+      
+      // 计算分页信息
+      const totalPages = Math.ceil(result.total / limit);
+      
+      // 构建响应
+      const response = {
+        success: true,
+        data: result.histories,
+        pagination: {
+          page,
+          limit,
+          total: result.total,
+          totalPages
+        },
+        statusCode: 200,
+        timestamp: new Date().toISOString()
+      };
+      
+      return NextResponse.json(response);
     } catch (error) {
       const appError = ErrorHandler.handleError(error);
       ErrorHandler.logError(appError, 'GET /api/backpack/history');
