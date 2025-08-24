@@ -104,7 +104,14 @@ export function ItemCard({
 
       {/* 选择数量控制 */}
       {isSelected && item.isUsable && onQuantityChange && (
-        <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-blue-200">
+        <div 
+          className="flex items-center justify-center space-x-1 sm:space-x-2 mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-blue-200"
+          onClick={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onMouseUp={(e) => e.stopPropagation()}
+        >
           <TouchFeedback
             onPress={handleQuantityDecrease}
             disabled={selectedQuantity <= 0 || disabled}
