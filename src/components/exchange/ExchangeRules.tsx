@@ -98,7 +98,7 @@ export function ExchangeRules({ onExchangeSuccess }: ExchangeRulesProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          exchangeRuleId: selectedRule.id,
+          ruleId: selectedRule.id,
           quantity,
         }),
       });
