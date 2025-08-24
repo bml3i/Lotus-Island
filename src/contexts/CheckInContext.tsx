@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
 import { CheckInStatus } from '@/types';
 import { useAuth } from './AuthContext';
 
@@ -23,29 +23,29 @@ export function CheckInProvider({ children }: CheckInProviderProps) {
   const [status, setStatus] = useState<CheckInStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
+  const lastFetchTimeRef = useRef<number>(0);
+  const mountedRef = useRef<boolean>(true);
 
   // 防抖：避免频繁调用API
-  const FETCH_COOLDOWN = 5000; // 5秒内不重复调用
+  const FETCH_COOLDOWN = 10000; // 10秒防抖
 
-  const fetchStatus = useCallback(async (force = false) => {
-    const now = Date.now();
-    
-    // 如果不是强制刷新且在冷却时间内，跳过请求
-    if (!force && now - lastFetchTime < FETCH_COOLDOWN) {
+  // 核心API调用函数
+  const performFetch = useCallback(async (force = false) => {
+    if (!mountedRef.current || !isAuthenticated || !token) {
       return;
     }
 
-    if (!isAuthenticated || !token) {
-      setError('请先登录');
-      setLoading(false);
+    const now = Date.now();
+
+    // 防抖检查
+    if (!force && now - lastFetchTimeRef.current < FETCH_COOLDOWN) {
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
-      setLastFetchTime(now);
+      lastFetchTimeRef.current = now;
 
       const response = await fetch('/api/activities/checkin/status', {
         headers: {
@@ -58,33 +58,50 @@ export function CheckInProvider({ children }: CheckInProviderProps) {
       }
 
       const result = await response.json();
-      
-      if (result.success) {
-        setStatus(result.data);
-      } else {
-        setError(result.error || '获取签到状态失败');
+
+      if (mountedRef.current) {
+        if (result.success) {
+          setStatus(result.data);
+        } else {
+          setError(result.error || '获取签到状态失败');
+        }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '网络错误');
+      if (mountedRef.current) {
+        setError(err instanceof Error ? err.message : '网络错误');
+      }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
-  }, [token, isAuthenticated, lastFetchTime]);
+  }, [token, isAuthenticated]);
 
   const refreshStatus = useCallback(async () => {
-    await fetchStatus(true); // 强制刷新
-  }, [fetchStatus]);
+    await performFetch(true);
+  }, [performFetch]);
 
   const updateStatus = useCallback((newStatus: CheckInStatus) => {
-    setStatus(newStatus);
+    if (mountedRef.current) {
+      setStatus(newStatus);
+    }
   }, []);
 
-  // 初始化时获取状态
+  // 初始化
   useEffect(() => {
+    mountedRef.current = true;
+
     if (isAuthenticated && token) {
-      fetchStatus(true);
+      performFetch(true);
+    } else {
+      setLoading(false);
+      setError(isAuthenticated ? null : '请先登录');
     }
-  }, [isAuthenticated, token, fetchStatus]); // 添加fetchStatus依赖
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [isAuthenticated, token]); // 只依赖认证状态
 
   const value: CheckInContextType = {
     status,
