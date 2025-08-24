@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { BackpackItem } from '@/types';
 import { ItemCard } from './ItemCard';
@@ -22,6 +22,7 @@ export function ItemSelector({ onUseSuccess }: ItemSelectorProps) {
   const [using, setUsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const lastSelectTimeRef = useRef<{ [itemId: string]: number }>({});
 
   // 获取背包物品
   const fetchBackpackItems = async () => {
@@ -50,6 +51,16 @@ export function ItemSelector({ onUseSuccess }: ItemSelectorProps) {
 
   // 选择物品
   const handleItemSelect = (itemId: string) => {
+    // 防抖保护：防止快速重复点击
+    const now = Date.now();
+    const lastSelectTime = lastSelectTimeRef.current[itemId] || 0;
+    
+    if (now - lastSelectTime < 500) {
+      return; // 忽略500ms内的重复点击
+    }
+    
+    lastSelectTimeRef.current[itemId] = now;
+    
     const existingIndex = selectedItems.findIndex(item => item.itemId === itemId);
     
     if (existingIndex >= 0) {

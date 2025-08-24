@@ -40,6 +40,8 @@ export function TouchFeedback({
   const elementRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const rippleIdRef = useRef(0);
+  const touchHandledRef = useRef(false);
+  const lastPressTimeRef = useRef(0);
 
   // Create ripple effect
   const createRipple = useCallback((event: React.TouchEvent | React.MouseEvent) => {
@@ -48,7 +50,7 @@ export function TouchFeedback({
     const rect = elementRef.current.getBoundingClientRect();
     const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
     const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
-    
+
     const x = clientX - rect.left;
     const y = clientY - rect.top;
     const size = Math.max(rect.width, rect.height) * 2;
@@ -68,10 +70,11 @@ export function TouchFeedback({
     }, 600);
   }, [rippleEffect]);
 
-  // Handle press start
-  const handlePressStart = useCallback((event: React.TouchEvent | React.MouseEvent) => {
+  // Handle touch start
+  const handleTouchStart = useCallback((event: React.TouchEvent) => {
     if (disabled) return;
 
+    touchHandledRef.current = true;
     setIsPressed(true);
     createRipple(event);
 
@@ -92,8 +95,8 @@ export function TouchFeedback({
     }
   }, [disabled, createRipple, hapticFeedback, onLongPress, longPressDelay]);
 
-  // Handle press end
-  const handlePressEnd = useCallback(() => {
+  // Handle touch end
+  const handleTouchEnd = useCallback(() => {
     if (disabled) return;
 
     setIsPressed(false);
@@ -104,14 +107,82 @@ export function TouchFeedback({
       longPressTimerRef.current = undefined;
     }
 
+    // Prevent rapid successive presses (debounce)
+    const now = Date.now();
+    if (now - lastPressTimeRef.current < 300) {
+      return;
+    }
+    lastPressTimeRef.current = now;
+
+    // Trigger press callback
+    if (onPress) {
+      onPress();
+    }
+
+    // Reset touch handled flag after a short delay to prevent mouse events
+    setTimeout(() => {
+      touchHandledRef.current = false;
+    }, 300);
+  }, [disabled, onPress]);
+
+  // Handle mouse start (only if touch wasn't handled)
+  const handleMouseStart = useCallback((event: React.MouseEvent) => {
+    if (disabled || touchHandledRef.current) return;
+
+    setIsPressed(true);
+    createRipple(event);
+
+    // Long press timer
+    if (onLongPress) {
+      longPressTimerRef.current = setTimeout(() => {
+        onLongPress();
+        setIsPressed(false);
+      }, longPressDelay);
+    }
+  }, [disabled, createRipple, onLongPress, longPressDelay]);
+
+  // Handle mouse end (only if touch wasn't handled)
+  const handleMouseEnd = useCallback(() => {
+    if (disabled || touchHandledRef.current) return;
+
+    setIsPressed(false);
+
+    // Clear long press timer
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = undefined;
+    }
+
+    // Prevent rapid successive presses (debounce)
+    const now = Date.now();
+    if (now - lastPressTimeRef.current < 300) {
+      return;
+    }
+    lastPressTimeRef.current = now;
+
     // Trigger press callback
     if (onPress) {
       onPress();
     }
   }, [disabled, onPress]);
 
-  // Handle press cancel
-  const handlePressCancel = useCallback(() => {
+  // Handle touch cancel
+  const handleTouchCancel = useCallback(() => {
+    setIsPressed(false);
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = undefined;
+    }
+    // Reset touch handled flag
+    setTimeout(() => {
+      touchHandledRef.current = false;
+    }, 300);
+  }, []);
+
+  // Handle mouse cancel (only if touch wasn't handled)
+  const handleMouseCancel = useCallback(() => {
+    if (touchHandledRef.current) return;
+
     setIsPressed(false);
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
@@ -136,7 +207,11 @@ export function TouchFeedback({
     touchAction: 'manipulation',
     userSelect: 'none',
     WebkitUserSelect: 'none',
-    cursor: disabled ? 'default' : 'pointer'
+    WebkitTouchCallout: 'none',
+    cursor: disabled ? 'default' : 'pointer',
+    // Prevent text selection and context menu on long press
+    MozUserSelect: 'none',
+    msUserSelect: 'none'
   };
 
   return (
@@ -144,15 +219,15 @@ export function TouchFeedback({
       ref={elementRef}
       className={`relative overflow-hidden ${className}`}
       style={combinedStyle}
-      onTouchStart={handlePressStart}
-      onTouchEnd={handlePressEnd}
-      onTouchCancel={handlePressCancel}
-      onMouseDown={handlePressStart}
-      onMouseUp={handlePressEnd}
-      onMouseLeave={handlePressCancel}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
+      onMouseDown={handleMouseStart}
+      onMouseUp={handleMouseEnd}
+      onMouseLeave={handleMouseCancel}
     >
       {children}
-      
+
       {/* Ripple effects */}
       {ripples.map(ripple => (
         <div
@@ -220,8 +295,8 @@ export function TouchButton({
       className={`
         inline-flex items-center justify-center font-medium rounded-lg border-2 transition-colors
         ${sizeClasses[size]}
-        ${isDisabled 
-          ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed' 
+        ${isDisabled
+          ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed'
           : variantClasses[variant]
         }
         ${fullWidth ? 'w-full' : ''}
